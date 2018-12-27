@@ -3,10 +3,6 @@ contoh
 Risky Frasetio Wahyu Pratama
 December 27, 2018
 
-<style>
-body {
-text-align: justify}
-</style>
 Running Nonparametric Spline Truncated
 ======================================
 
