@@ -1,0 +1,66 @@
+---
+title: "contoh"
+author: "Risky Frasetio Wahyu Pratama"
+date: "December 27, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<style>
+body {
+text-align: justify}
+</style>
+
+# Running Nonparametric Spline Truncated
+
+##data
+
+data yang digunakan yakni data Indeks Demokrasi Indonesia bersumber dari BPS.
+
+```{r,include=TRUE}
+library(readxl)
+dat=read_excel(choose.files())
+dat=as.data.frame(dat)
+dat
+```
+
+pola hubungan antara masing-masing prediktor terhadap respon dapat dilihat sebagai berikut
+
+```{r,include=TRUE,fig.align='center'}
+library(ggplot2)
+qplot(X1_IPM,Y_IDI,data=dat,colour=PROVINSI,xlab = "Indeks Pembangunan Manusia",ylab="Indeks Demokrasi Indonesia") + theme(legend.text=element_text(size = 3),axis.text.x = element_text(size=5))
+qplot(X2_IDG,Y_IDI,data=dat,colour=PROVINSI,xlab = "Indeks Pemberdayaan Gender",ylab="Indeks Demokrasi Indonesia") + theme(legend.text=element_text(size = 5),axis.text.x = element_text(size=5))
+qplot(X3_LPE,Y_IDI,data=dat,colour=PROVINSI,xlab = "laju Pertumbuhan Ekonomi",ylab="Indeks Demokrasi Indonesia") + theme(legend.text=element_text(size = 5),axis.text.x = element_text(size=5))
+qplot(X4_PPM,Y_IDI,data=dat,colour=PROVINSI,xlab = "Persentase Penduduk Miskin",ylab="Indeks Demokrasi Indonesia") + theme(legend.text=element_text(size = 5),axis.text.x = element_text(size=5))
+qplot(X5_GR,Y_IDI,data=dat,colour=PROVINSI,xlab = "GINI RATIO",ylab="IDI") + theme(legend.text=element_text(size = 5),axis.text.x = element_text(size=5))
+qplot(X6_IPTIK,Y_IDI,data=dat,colour=PROVINSI,xlab = "Indeks Pembangunan Teknologi",ylab="Indeks Demokrasi Indonesia") + theme(legend.text=element_text(size = 5),axis.text.x = element_text(size=5))
+```
+
+
+## jika dimodelkan dengan regresi linier berganda
+
+```{r,include=TRUE,fig.align='center'}
+regresi.par=lm(Y_IDI~.,data=dat[,-1])
+summary(regresi.par)
+```
+
+## jika dimodelkan dengan regresi nonparametrik spline truncated linier
+```{r,include=TRUE,fig.align='center',message=FALSE,warning=FALSE}
+source('D:/kampus/kerja/spline/splinetruncated.R')
+x=dat[,-c(1,2)]
+y=dat[,2]
+model=spline.truncated.linier.multivariabel(x,y,b=30,taraf.alpha = 0.05)
+```
+
+b adalah banyaknya titik yang dicobakan akan dalam mencari knot optimal pada setiap variabel. masing-masing variabel akan memiliki b titik yang akan dicobakan dalam mencari satu knot optimal, 2 knot optimal, 3 knot optimal maupun kombinasi dari satu knot, dua knot dan 3 knot. Berdasarkan hasil terzebut diperoleh knot optimum yakni 4 knot untuk masing-masing variabel dengan nilai gcv 20,30692.
+
+```{r,include=TRUE,fig.align='center',message=FALSE,warning=FALSE}
+dat$ytopispline=model$ytopi
+dat$ytopiregberganda=regresi.par$fitted.values
+dat
+ggplot(dat,aes(x=PROVINSI,y=Y_IDI))+geom_point()+geom_line(aes(x=PROVINSI,y=ytopispline,group=1,colour="regresispline"))+geom_line(aes(x=PROVINSI,y=ytopiregberganda,group=1,colour="regresiberganda"))+ggtitle("Hasil Taksiran")+ylab("IDI")+coord_flip()+scale_colour_manual(name="garis",values=c(regresispline="blue",regresiberganda="red"))
+```
+
